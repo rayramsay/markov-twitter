@@ -130,7 +130,7 @@ def make_text(chains, desired_sentences=2):
 
     return text
 
-def tweet(text):
+def tweet(chains):
     """Given a string, processes that string and posts it to twitter.
 
     Use Python os.environ to get at environmental variables.
@@ -149,17 +149,37 @@ def tweet(text):
     # Print info about credentials to make sure they're correct.
     # print api.VerifyCredentials()
 
-    # Trims input to 140 characters and posts it. Status is a special module
+    # Trim input to 140 characters and posts it. Status is a special module
     # from python-twitter.
 
-    if len(text) > 140:
-        text = text[:137] + '...'
+    tweeting = True
 
-    status = api.PostUpdate(text)
+    while tweeting:
 
-    # Prints just the text of the status.
+        # Make a new piece of random text.
+        text = make_text(chains)
 
-    print status.text
+        # Check random text length. If it's too long to tweet, truncate it to
+        # 137 characters, and add an ellipsis. 
+        if len(text) > 140:
+            text = text[:137]
+            index = text[::-1].find(' ')
+            text = text[:-index-1]
+            text = text + '...'
+
+        # Post new tweet to the Internet. 
+        status = api.PostUpdate(text)
+
+        # Print just the text of the status.
+        print "Your tweet was: \"{}\"".format(status.text)
+
+        # Ask the user if they want to tweet some more.
+        user_reply = raw_input("Enter to tweet again [q to quit] > ")
+
+        # If the user entered q/Q, set tweeting flag to False so loop will
+        # end. 
+        if user_reply.lower() == "q":
+            tweeting = False
 
 # Take text file as command line argument
 input_path = sys.argv[1]
@@ -171,7 +191,7 @@ big_string = open_and_read_file(input_path)
 chains = make_chains(big_string)
 
 # Produce random text
-random_text = make_text(chains)
+#random_text = make_text(chains)
 
 # Tweets out random text
-tweet(random_text)
+tweet(chains)
