@@ -1,5 +1,7 @@
-from random import choice
+import os
 import sys
+from random import choice
+import twitter
 
 
 def open_and_read_file(file_path):
@@ -15,7 +17,7 @@ def open_and_read_file(file_path):
     return contents
 
 
-def make_chains(text_string, n):
+def make_chains(text_string, n=2):
     """Takes input text as string and length of n-gram as integer; 
     returns _dictionary_ of markov chains.
 
@@ -128,16 +130,48 @@ def make_text(chains, desired_sentences=2):
 
     return text
 
+def tweet(text):
+    """Given a string, processes that string and posts it to twitter.
+
+    Use Python os.environ to get at environmental variables.
+    Note: you must run `source secrets.sh` before running this file to make sure
+    these environmental variables are set.
+    """
+
+    # Set default values for parameters of function.
+
+    api = twitter.Api(
+        consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
+        consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
+        access_token_key=os.environ['TWITTER_ACCESS_TOKEN_KEY'],
+        access_token_secret=os.environ['TWITTER_ACCESS_TOKEN_SECRET'])
+
+    # Print info about credentials to make sure they're correct.
+    # print api.VerifyCredentials()
+
+    # Trims input to 140 characters and posts it. Status is a special module
+    # from python-twitter.
+
+    if len(text) > 140:
+        text = text[:137] + '...'
+
+    status = api.PostUpdate(text)
+
+    # Prints just the text of the status.
+
+    print status.text
+
 # Take text file as command line argument
 input_path = sys.argv[1]
 
 # Open the file and turn it into one long string
-input_text = open_and_read_file(input_path)
+big_string = open_and_read_file(input_path)
 
 # Get a Markov chain
-chains = make_chains(input_text, 2)
+chains = make_chains(big_string)
 
 # Produce random text
 random_text = make_text(chains)
 
-print random_text
+# Tweets out random text
+tweet(random_text)
