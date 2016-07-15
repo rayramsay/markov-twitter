@@ -4,15 +4,17 @@ from random import choice
 import twitter
 
 
-def open_and_read_file(file_path):
-    """Takes file path as string; returns text as string.
-
-    Takes a string that is a file path, opens the file, and turns
-    the file's contents as one string of text.
+def open_and_read_file(filenames):
+    """Given a list of files, open them, read the text, and return one long
+       string.
     """
 
-    # Chain open() to create file object, then read() to create string.
-    contents = open(file_path).read()
+    contents = ""
+
+    for filename in filenames:
+        text_file = open(filename)
+        contents = contents + text_file.read()
+        text_file.close()
 
     return contents
 
@@ -131,7 +133,7 @@ def make_text(chains, desired_sentences=2):
     return text
 
 def tweet(chains):
-    """Given a string, processes that string and posts it to twitter.
+    """Given a dictionary, creates text, processes it, and posts it to twitter.
 
     Use Python os.environ to get at environmental variables.
     Note: you must run `source secrets.sh` before running this file to make sure
@@ -181,17 +183,19 @@ def tweet(chains):
         if user_reply.lower() == "q":
             tweeting = False
 
-# Take text file as command line argument
-input_path = sys.argv[1]
+# Get the filenames from the user through a command line prompt, ex:
+# python markov.py green-eggs.txt shakespeare.txt
+filenames = sys.argv[1:]
 
-# Open the file and turn it into one long string
-big_string = open_and_read_file(input_path)
+# Loop over the files and turn them into one long string
+big_string = open_and_read_file(filenames)
 
 # Get a Markov chain
 chains = make_chains(big_string)
 
 # Produce random text
-#random_text = make_text(chains)
+random_text = make_text(chains)
+print random_text
 
 # Tweets out random text
-tweet(chains)
+# tweet(chains)
