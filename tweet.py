@@ -41,8 +41,10 @@ def tweet(chains):
         # ellipsis.
         if len(text) > 140:
             text = text[:137]
-            index = text[::-1].find(' ')
-            text = text[:-index-1]
+            index = text[::-1].find(' ')  # reverses string to find first space
+            text = text[:-index-1]  # truncates string at that space
+            if text.endswith((',', ';')):  # trims any mid-sentence punctuation
+                text = text[:-1]
             text = text + '...'
 
         # Display tweet draft to the user.
