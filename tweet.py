@@ -11,21 +11,26 @@ def tweet(chains):
     `source twitter_secrets.sh` before running this file to make sure these
     environmental variables are set."""
 
-    api = twitter.Api(
-        consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
-        consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
-        access_token_key=os.environ['TWITTER_ACCESS_TOKEN_KEY'],
-        access_token_secret=os.environ['TWITTER_ACCESS_TOKEN_SECRET'])
+    try:
+        api = twitter.Api(
+            consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
+            consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
+            access_token_key=os.environ['TWITTER_ACCESS_TOKEN_KEY'],
+            access_token_secret=os.environ['TWITTER_ACCESS_TOKEN_SECRET'])
+    except KeyError:
+        print "Error: Remember to source your twitter secrets."
+        return
 
     # Print info about credentials to make sure they're correct.
-    # print "Verifying credentials...\n", api.VerifyCredentials()
+    try:
+        api.VerifyCredentials()
+        print "Credentials verified."
+    except Exception as e:
+        print "Credentials cannot be verified:", e
+        return
 
     # Set state variable for REPL.
     tweeting = True
-
-    # Trim input to 140 characters and post it. `Status` is a special module
-    # from python-twitter.
-
     while tweeting:
 
         # Make a new piece of random text.
@@ -40,16 +45,20 @@ def tweet(chains):
             text = text[:-index-1]
             text = text + '...'
 
-        # Post new tweet to the Internet.
-        status = api.PostUpdate(text)
+        # Display tweet draft to the user.
+        print "Your tweet will be: {}".format(text)
+        user_reply = raw_input("Do you want to post it? [y/n] > ")
 
-        # Print just the text of the status.
-        print "Your tweet was: {}".format(status.text)
+        if user_reply.lower() == "y":
+            # status = api.PostUpdate(text)
+            # print "Your tweet was: {}".format(status.text)
+            api.PostUpdate(text)
+            print "Tweet posted."
 
         # Ask the user if they want to tweet some more.
-        user_reply = raw_input("Enter to tweet again [q to quit] > ")
+        user_reply = raw_input("Hit 'Enter' to tweet again [q to quit] > ")
 
-        # If the user entered q/Q, set tweeting flag to False so loop will end.
+        # If the user enters q/Q, set tweeting flag to False so loop will end.
         if user_reply.lower() == "q":
             tweeting = False
 
