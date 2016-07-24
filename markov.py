@@ -116,8 +116,8 @@ def make_text(chains, desired_sentences=2):
     return text
 
 
-def make_the_donuts():
-    """Prints out random text."""
+def command_line_markov():
+    """Returns random text."""
 
     # Get the filenames and desired number of sentences (default 2) from the
     # user through a command line prompt, ex:
@@ -131,15 +131,15 @@ def make_the_donuts():
         filenames = sys.argv[1:]
 
     # Loop over the files and turn them into one long string.
-    big_string = open_and_read_file(filenames)
+    string = open_and_read_file(filenames)
 
     # Make Markov chain.
-    chains = make_chains(big_string)
+    chains = make_chains(string)
 
     # Produce random text.
     random_text = make_text(chains, desired_sentences)
-    print random_text
+    return random_text
 
 
 if __name__ == "__main__":
-    make_the_donuts()
+    print command_line_markov()
