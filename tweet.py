@@ -71,14 +71,16 @@ def command_line_tweet():
     filenames = sys.argv[1:]
 
     # Loop over the files and turn them into one long string.
-    string = markov.open_and_read_file(filenames)
+    string = markov.open_and_read(filenames)
 
     # Make Markov chain.
     chains = markov.make_chains(string)
 
     # Tweet from chain.
-    tweet(chains)
-
+    try:
+        tweet(chains)
+    except IndexError:
+        print "Error: Remember to include at least one filename."
 
 if __name__ == "__main__":
     command_line_tweet()

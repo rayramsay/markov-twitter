@@ -2,7 +2,7 @@ import sys
 from random import choice
 
 
-def open_and_read_file(filenames):
+def open_and_read(filenames):
     """Given a list of files, open them, read the text, and return one long
     string."""
 
@@ -10,7 +10,7 @@ def open_and_read_file(filenames):
 
     for filename in filenames:
         text_file = open(filename)
-        contents = contents + text_file.read()
+        contents = contents + text_file.read() + ' '
         text_file.close()
 
     return contents
@@ -123,15 +123,19 @@ def command_line_markov():
     # user through a command line prompt, ex:
     # python markov.py -3 genesis.txt gettysburg.txt
 
-    if sys.argv[1].startswith('-'):
-        desired_sentences = int(sys.argv[1][1:])
-        filenames = sys.argv[2:]
-    else:
-        desired_sentences = 2
-        filenames = sys.argv[1:]
+    try:
+        if sys.argv[1].startswith('-'):
+            desired_sentences = int(sys.argv[1][1:])
+            filenames = sys.argv[2:]
+        else:
+            desired_sentences = 2
+            filenames = sys.argv[1:]
+    except IndexError:
+        print "Error: Remember to include at least one filename."
+        return
 
     # Loop over the files and turn them into one long string.
-    string = open_and_read_file(filenames)
+    string = open_and_read(filenames)
 
     # Make Markov chain.
     chains = make_chains(string)
