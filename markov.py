@@ -1,79 +1,145 @@
-import os
 import sys
 from random import choice
-import twitter
 
 
 def open_and_read_file(filenames):
     """Given a list of files, open them, read the text, and return one long
-        string."""
+    string."""
 
-    body = ""
+    contents = ""
 
     for filename in filenames:
         text_file = open(filename)
-        body = body + text_file.read()
+        contents = contents + text_file.read()
         text_file.close()
 
-    return body
+    return contents
 
 
-def make_chains(text_string):
-    """Takes input text as string; returns dictionary of markov chains."""
+def make_chains(text_string, n=2):
+    """Takes input text as string and length of n-gram as integer (default 2);
+    returns dictionary of markov chains.
+
+    Each key is a tuple n-words long and each value is a list of the word(s)
+    that follow that key in the input text.
+
+    For example:
+
+        >>> make_chains("hi there mary hi there juanita", 2)
+        {('hi', 'there'): ['mary', 'juanita'], ('there', 'mary'): ['hi'], ('mary', 'hi': ['there']}
+    """
 
     chains = {}
 
+    # Split text_string on whitespace, creating list of words.
     words = text_string.split()
 
-    for i in range(len(words) - 2):
-        key = (words[i], words[i + 1])
-        value = words[i + 2]
+    # Iterate over indices. Use a range of 2 less than number of words (i.e.,
+    # len(list)) so that the final key-value pair is made from the last three
+    # words.
 
-        if key not in chains:
-            chains[key] = []
+    for i in range(len(words) - n):
 
-        chains[key].append(value)
+        # Make a tuple n-words long to use as a key.
+        key = []
+        for num in range(n):
+            key.append(words[i + num])
+        key = tuple(key)
 
-        # or we could replace the last three lines with:
-        #    chains.setdefault(key, []).append(value)
+        # Check whether the key we just made exists in chains. If not,
+        # add it, and set its value to [].
+        # Update the key's value to be the word that follows this occurrence of
+        # the key. ".append" works in place; don't need to use "=".
+        chains.setdefault(key, []).append(words[i + n])
 
     return chains
 
 
-def make_text(chains):
-    """Takes dictionary of markov chains; returns random text."""
+def make_capital_keys(chains):
+    """Given a dictionary, creates a list of keys that start with a capital.
 
-    key = choice(chains.keys())
-    words = [key[0], key[1]]
-    while key in chains:
-        # Keep looping until we have a key that isn't in the chains
-        # (which would mean it was the end of our original text)
-        #
-        # Note that for long texts (like a full book), this might mean
-        # it would run for a very long time.
+    Expects dictionary keys to be tuples, and checks capitalization
+    of first element in each tuple."""
 
-        word = choice(chains[key])
-        words.append(word)
-        key = (key[1], word)
+    # Start with an empty list to contain keys that start with capital letters.
+    cap_keys = []
 
-    return " ".join(words)
+    # Iterate over keys. If the first item in the tuple is not equivalent to the
+    # lowercase version of that item, append it to the list of keys that start
+    # with capital letters.
+    for key in chains.iterkeys():
+        if key[0] != key[0].lower():
+            cap_keys.append(key)
+
+    return cap_keys
 
 
-def tweet(chains):
-    # Use Python os.environ to get at environmental variables
-    # Note: you must run `source secrets.sh` before running this file
-    # to make sure these environmental variables are set.
-    pass
+def make_text(chains, desired_sentences=2):
+    """Takes dictionary of markov chains and desired number of sentences;
+    returns random text of desired length."""
 
-# Get the filenames from the user through a command line prompt, ex:
-# python markov.py green-eggs.txt shakespeare.txt
-filenames = sys.argv[1:]
+    words = []
 
-# Open the files and turn them into one long string
-text = open_and_read_file(filenames)
+    # Choose a random capital key to start with.
+    key = choice(make_capital_keys(chains))
 
-# Get a Markov chain
-chains = make_chains(text)
+    # Add each element of first key tuple to list of words.
+    for item in key:
+        words.append(item)
 
-# Your task is to write a new function tweet, that will take chains as input
-# tweet(chains)
+    # Write the new text.
+    while desired_sentences > 0:
+
+        # Randomly choose next word from key's value list.
+        next_word = choice(chains[key])
+
+        # Add next word to list of words.
+        words.append(next_word)
+
+        # Check whether next_word ends with terminal punctuation. If so, update
+        # count of sentences.
+
+        if next_word.endswith(('.', '?', '!')):
+            desired_sentences -= 1
+
+        # Create next key
+        key = key[1:] + (next_word, )
+
+        # Check whether created key exists in passed dictionary.
+        # If it doesn't, stop writing.
+        if not key in chains:
+            break
+
+    # Join all elements in word list into one string.
+    text = " ".join(words)
+
+    return text
+
+
+def make_the_donuts():
+    """Prints out random text."""
+
+    # Get the filenames and desired number of sentences (default 2) from the
+    # user through a command line prompt, ex:
+    # python markov.py -3 genesis.txt gettysburg.txt
+
+    if sys.argv[1].startswith('-'):
+        desired_sentences = int(sys.argv[1][1:])
+        filenames = sys.argv[2:]
+    else:
+        desired_sentences = 2
+        filenames = sys.argv[1:]
+
+    # Loop over the files and turn them into one long string.
+    big_string = open_and_read_file(filenames)
+
+    # Make Markov chain.
+    chains = make_chains(big_string)
+
+    # Produce random text.
+    random_text = make_text(chains, desired_sentences)
+    print random_text
+
+
+if __name__ == "__main__":
+    make_the_donuts()
