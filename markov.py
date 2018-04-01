@@ -1,6 +1,9 @@
 import sys
 from random import choice
 
+VERBOSE = True
+SHERLOCK = True
+
 
 def open_and_read(filenames):
     """Given a list of files, open them, read the text, and return one long
@@ -10,6 +13,8 @@ def open_and_read(filenames):
 
     for filename in filenames:
         text_file = open(filename)
+        if VERBOSE:
+            print(filename+" opened")
         contents = contents + text_file.read() + ' '
         text_file.close()
 
@@ -83,6 +88,16 @@ def make_text(chains, desired_sentences=2):
     # Choose a random capital key to start with.
     key = choice(make_capital_keys(chains))
 
+    # Create list of starting tuples that begin with "Holmes" and do not end
+    # with a period, and choose one of those to start with.
+    if SHERLOCK:
+        sher_keys = []
+        for key in iter(chains.keys()):
+            if key[0] == "Holmes" and key[-1][-1] != ".":
+                sher_keys.append(key)
+        print(sher_keys)
+        key = choice(sher_keys)
+
     # Add each element of first key tuple to list of words.
     for item in key:
         words.append(item)
@@ -102,8 +117,8 @@ def make_text(chains, desired_sentences=2):
         if next_word.endswith(('.', '?', '!')):
             desired_sentences -= 1
 
-        # Create next key
-        key = key[1:] + (next_word, )
+        # Create next key. We're adding tuples together.
+        key = key[1:] + (next_word,)
 
         # Check whether created key exists in passed dictionary.
         # If it doesn't, stop writing.
@@ -142,6 +157,7 @@ def command_line_markov():
 
     # Produce random text.
     random_text = make_text(chains, desired_sentences)
+
     return random_text
 
 
