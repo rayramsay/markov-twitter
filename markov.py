@@ -1,8 +1,8 @@
 import sys
 from random import choice
 
+
 VERBOSE = True
-SHERLOCK = True
 
 
 def open_and_read(filenames):
@@ -31,7 +31,7 @@ def make_chains(text_string, n=2):
     For example:
 
         >>> make_chains("hi there mary hi there juanita", 2)
-        {('hi', 'there'): ['mary', 'juanita'], ('there', 'mary'): ['hi'], ('mary', 'hi': ['there']}
+        {('hi', 'there'): ['mary', 'juanita'], ('there', 'mary'): ['hi'], ('mary', 'hi'): ['there']}
     """
 
     chains = {}
@@ -39,10 +39,8 @@ def make_chains(text_string, n=2):
     # Split text_string on whitespace, creating list of words.
     words = text_string.split()
 
-    # Iterate over indices. Use a range of 2 less than number of words (i.e.,
-    # len(list)) so that the final key-value pair is made from the last three
-    # words.
-
+    # Iterate over indices using range of n less than the total number of words
+    # so that the final key-value pair is made from the last n + 1 words.
     for i in range(len(words) - n):
 
         # Make a tuple n-words long to use as a key.
@@ -53,8 +51,8 @@ def make_chains(text_string, n=2):
 
         # Check whether the key we just made exists in chains. If not,
         # add it, and set its value to [].
-        # Update the key's value to be the word that follows this occurrence of
-        # the key.
+        # Update the key's value to include the word that follows this
+        # occurrence of the key.
         chains.setdefault(key, []).append(words[i + n])
 
     return chains
@@ -79,24 +77,30 @@ def make_capital_keys(chains):
     return cap_keys
 
 
-def make_text(chains, desired_sentences=2):
-    """Takes dictionary of markov chains and desired number of sentences;
-    returns random text of desired length."""
+def make_starter_keys(chains, starter_word):
+    """Given a dictionary and starter string, creates a list of keys that start
+    with that word and don't end with terminal punctuation."""
+
+    starter_keys = []
+
+    for key in iter(chains.keys()):
+        if key[0] == starter_word and key[-1][-1] not in [".", "?", "!"]:
+            starter_keys.append(key)
+
+    if VERBOSE:
+        print(starter_keys)
+
+    return starter_keys
+
+
+def make_text(chains, starter_keys, desired_sentences=2):
+    """Takes dictionary of markov chains, list of starter keys, and desired
+    number of sentences; returns random text of desired length."""
 
     words = []
 
-    # Choose a random capital key to start with.
-    key = choice(make_capital_keys(chains))
-
-    # Create list of starting tuples that begin with "Holmes" and do not end
-    # with a period, and choose one of those to start with.
-    if SHERLOCK:
-        sher_keys = []
-        for key in iter(chains.keys()):
-            if key[0] == "Holmes" and key[-1][-1] != ".":
-                sher_keys.append(key)
-        print(sher_keys)
-        key = choice(sher_keys)
+    # Choose a random key to start with.
+    key = choice(starter_keys)
 
     # Add each element of first key tuple to list of words.
     for item in key:
@@ -113,7 +117,6 @@ def make_text(chains, desired_sentences=2):
 
         # Check whether next_word ends with terminal punctuation. If so, update
         # count of sentences.
-
         if next_word.endswith(('.', '?', '!')):
             desired_sentences -= 1
 
@@ -152,11 +155,14 @@ def command_line_markov():
     # Loop over the files and turn them into one long string.
     string = open_and_read(filenames)
 
-    # Make Markov chain.
+    # Make Markov chains.
     chains = make_chains(string)
 
+    # Make starter keys.
+    starters = make_starter_keys(chains, "Holmes")
+
     # Produce random text.
-    random_text = make_text(chains, desired_sentences)
+    random_text = make_text(chains, starters, desired_sentences)
 
     return random_text
 
