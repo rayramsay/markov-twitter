@@ -137,20 +137,36 @@ def make_text(chains, starter_keys, desired_sentences=2):
 def command_line_markov():
     """Returns random text."""
 
-    # Get the filenames and desired number of sentences (default 2) from the
-    # user through a command line prompt, ex:
-    # python markov.py -3 genesis.txt gettysburg.txt
+    # Get the filenames, starter word (default cap_keys), and desired number of
+    # sentences (default 2) from the user through a command line prompt, ex:
+    # python markov.py -sent=3 -start=Holmes -files=scandal.txt,mountains.txt
 
-    try:
-        if sys.argv[1].startswith('-'):
-            desired_sentences = int(sys.argv[1][1:])
-            filenames = sys.argv[2:]
-        else:
-            desired_sentences = 2
-            filenames = sys.argv[1:]
-    except IndexError:
-        print("Error: Remember to include at least one filename.")
-        return
+    # Set default values.
+    desired_sentences = 2
+    starter_word = None
+    filenames = None
+
+    # Loop over arguments and check if flag.
+    for arg in sys.argv:
+        if arg.startswith('-'):
+            # If this is the desired sentences flag, set desired sentences.
+            if arg[1:].startswith("sent"):
+                desired_sentences = int(arg.split("=")[1])
+                if VERBOSE:
+                    print("Desired sentences: " + str(desired_sentences))
+            # If this is the starter word flag, set starter word.
+            if arg[1:].startswith("start"):
+                starter_word = arg.split("=")[1]
+                if VERBOSE:
+                    print("Starter word: " + starter_word)
+            # If this is the files flag, set filenames.
+            if arg[1:].startswith("files"):
+                filenames = arg.split("=")[1].split(",")
+                if VERBOSE:
+                    print("Filenames: " + str(filenames))
+
+    if not filenames:
+        raise Exception("Remember to include file names, like this: -files=scandal.txt,mountains.txt")
 
     # Loop over the files and turn them into one long string.
     string = open_and_read(filenames)
@@ -158,8 +174,11 @@ def command_line_markov():
     # Make Markov chains.
     chains = make_chains(string)
 
-    # Make starter keys.
-    starters = make_starter_keys(chains, "Holmes")
+    # Make starter keys with either desired word or capitals.
+    if starter_word:
+        starters = make_starter_keys(chains, starter_word)
+    else:
+        starters = make_capital_keys(chains)
 
     # Produce random text.
     random_text = make_text(chains, starters, desired_sentences)
