@@ -49,7 +49,7 @@ def make_chains(text_string, n=2):
         # Check whether the key we just made exists in chains. If not,
         # add it, and set its value to [].
         # Update the key's value to be the word that follows this occurrence of
-        # the key. ".append" works in place; don't need to use "=".
+        # the key.
         chains.setdefault(key, []).append(words[i + n])
 
     return chains
@@ -67,7 +67,7 @@ def make_capital_keys(chains):
     # Iterate over keys. If the first item in the tuple is not equivalent to the
     # lowercase version of that item, append it to the list of keys that start
     # with capital letters.
-    for key in chains.iterkeys():
+    for key in iter(chains.keys()):
         if key[0] != key[0].lower():
             cap_keys.append(key)
 
@@ -131,7 +131,7 @@ def command_line_markov():
             desired_sentences = 2
             filenames = sys.argv[1:]
     except IndexError:
-        print "Error: Remember to include at least one filename."
+        print("Error: Remember to include at least one filename.")
         return
 
     # Loop over the files and turn them into one long string.
@@ -146,4 +146,4 @@ def command_line_markov():
 
 
 if __name__ == "__main__":
-    print command_line_markov()
+    print(command_line_markov())
